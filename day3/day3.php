@@ -65,14 +65,53 @@
 
     function part2($rows) {
         $sum = 0;
+        $coordinates = [];
            
-        foreach ($rows as $row) {
-            //do stuff
+        foreach ($rows as $rowIndex => $row) {
+            preg_match_all('/\*/', $row, $symbols, PREG_OFFSET_CAPTURE);
+
+            foreach($symbols[0] as $symbol){
+                $coordinate = new Coordinate();
+                $coordinate->set_y($rowIndex);
+                $coordinate->set_x($symbol[1]);
+
+                array_push($coordinates, $coordinate);
+            }
+        }
+
+        foreach($coordinates as $coordinate){
+            $symbolY = $coordinate->get_y();
+            $symbolX = $coordinate->get_x();
+            $numbersFound = 0;
+            $gearRatio = 1;
+
+            foreach ($rows as $rowIndex => $row) {
+                preg_match_all('/\d+/', $row, $numbers, PREG_OFFSET_CAPTURE);
+
+                foreach($numbers[0] as $number){
+                    $numberY = $rowIndex;
+                    $firstX = $number[1];
+                    $lastX = $firstX + strlen($number[0]);
+
+                    if(($symbolY >= $numberY - 1) && ($symbolY <= $numberY + 1) && ($symbolX >= $firstX -1) && $symbolX <= $lastX){
+                        $numbersFound += 1;
+                        $gearRatio *= $number[0];
+                    }
+                }
+
+                if($numbersFound > 2){
+                    break;
+                }
+            }
+
+            if ($numbersFound === 2){
+                $sum += $gearRatio;
+            }
         }
 
         return $sum;
     }
 
-    $result = part1($rows);
+    $result = part2($rows);
     echo "result: $result \n";
 ?>
