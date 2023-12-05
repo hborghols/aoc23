@@ -1,40 +1,53 @@
 <?php
     $input = file_get_contents('input.txt'); //Get the file
-    // $input = file_get_contents('test1.txt'); //Get the first test input
+    // $input = file_get_contents('test2.txt'); //Get the first test input
     $blocks = explode("\n\n", $input); //Split the file by each block
 
     function getMap($block){
-        $map = [];
+        $ranges = array();
         $rows = explode("\n", $block);
+        $lowest = PHP_INT_MAX;
+        $highest = 0;
 
         foreach($rows as $index=>$row){
-            preg_match_all("/\d+/", $row, $numbers);
             if($index > 0){
-                array_push($map, ["destinationRangeStart"=>$numbers[0][0], "sourceRangeStart"=>$numbers[0][1], "rangeLength"=>$numbers[0][2]]);
+                $numbers = explode(" ", $row);
+
+                if($numbers[1] < $lowest){
+                    $lowest = $numbers[1];
+                }
+
+                if(($numbers[1] + $numbers[2]) > $highest){
+                    $highest = $numbers[1] + $numbers[2];
+                }
+                
+                array_push($ranges, ["destinationRangeStart"=>$numbers[0], "sourceRangeStart"=>$numbers[1], "rangeLength"=>$numbers[2]]);
             }
         }
 
-        return $map;
+        return [$ranges, ["minMap" => $lowest, "maxMap" => $highest]];
     }
 
     function findInMap($source, $map){
+        if($source < $map[1]["minMap"] || $source > $map[1]["maxMap"]){
+            return $source;
+        }
+
         $destination = $source;
 
-        foreach($map as $mapLine){
+        foreach($map[0] as $mapLine){
             $rangeLength = $mapLine['rangeLength'];
             $sourceStart = $mapLine['sourceRangeStart'];
             $sourceEnd = $sourceStart + $rangeLength - 1;
             $destinationStart = $mapLine['destinationRangeStart'];
 
             if(($sourceStart <= $source) && ($sourceEnd >= $source)){
-                // echo "We converten want $sourceStart <= $source en $sourceEnd >= $source \n";
                 $differenceWithStart = $source - $sourceStart;
-                // echo "New destination is $destinationStart + $differenceWithStart \n";
                 $destination = $destinationStart + $differenceWithStart;
+
+                return $destination;
             }
         }
-
-        // echo "new destination: $destination \n";
         
         return $destination;
     }
@@ -83,17 +96,8 @@
         for($i = 0; $i < sizeof($seeds[0]); $i +=2){
             $pairStart = $seeds[0][$i];
             $pairEnd = $seeds[0][$i] + $seeds[0][$i+1];
-            // echo "Looking at pair $i which runs from $pairStart to $pairEnd \n";
-        }
-
-        // $arraySize = sizeof($seeds[0]);
-        // echo "$arraySize \n";
-        for($i = 0; $i < sizeof($seeds[0]); $i +=2){
-            $pairStart = $seeds[0][$i];
-            $pairEnd = $seeds[0][$i] + $seeds[0][$i+1];
             echo "Looking at pair $i which runs from $pairStart to $pairEnd \n";
             for($j = $pairStart; $j <= $pairEnd; $j++){
-                // echo "Looking at seed $j \n";
                 $soilTarget = findInMap($j, $seedToSoil);
                 $fertilizerTarget = findInMap($soilTarget, $soilToFertilizer);
                 $waterTarget = findInMap($fertilizerTarget, $fertilizerToWater);
@@ -101,14 +105,14 @@
                 $temperatureTarget = findInMap($lightTarget, $lightToTemperature);
                 $humidityTarget = findInMap($temperatureTarget, $temperatureToHumidity);
                 $location = findInMap($humidityTarget, $humidityToLocation);
-                // echo "Found location $location \n";
 
                 if(($lowestLocation == -1) || ($location < $lowestLocation)){
                     $lowestLocation = $location;
                 }
 
-                // echo "\n";
             }
+
+            echo "New lowest value: $lowestLocation \n";
         }
 
         return $lowestLocation;
