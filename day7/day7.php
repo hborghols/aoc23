@@ -1,18 +1,26 @@
 <?php
     $input = file_get_contents('input.txt'); //Get the file
-    // $input = file_get_contents('test1.txt'); //Get the file
-    // $input = file_get_contents('test1.txt'); //Get the first test input
+    // $input = file_get_contents('test2.txt'); //Get the file
     $rows = explode("\n", $input); //Split the file by each block
 
     function getHandType($cards){
-        $uniqueCards = (int)strlen(count_chars($cards, 3));
+        $counts = count_chars($cards, 1);
+        arsort($counts);
+        $highestOccuringCard = chr(array_key_first($counts));
+        if($highestOccuringCard == 'J'){
+            $highestOccuringCard = chr(array_keys($counts)[1]);
+        }
+        $newCards = str_replace("J", $highestOccuringCard, $cards);
+        echo "$cards is now $newCards \n";
+        $uniqueCards = (int)strlen(count_chars($newCards, 3));
+        echo "and it has $uniqueCards unique cards \n";
         
         switch($uniqueCards){
             case 1:
                 //five of a kind
                 return 7;
             case 2:
-                foreach(count_chars($cards, 1) as $val){
+                foreach(count_chars($newCards, 1) as $val){
                     if($val == 4 || $val == 1){
                         //four of a kind
                         return 6;
@@ -26,7 +34,7 @@
                     }
                 }
             case 3:
-                foreach(count_chars($cards, 1) as $val){
+                foreach(count_chars($newCards, 1) as $val){
                     if($val == 3){
                         //three of a kind
                         return 4;
@@ -49,7 +57,8 @@
     }    
 
     function compareHands($hand1, $hand2){
-        $cardStrength = ['A'=>12, 'K'=>11, 'Q'=>10, 'J'=>9, 'T'=>8, '9'=>7, '8'=>6, '7'=>5, '6'=>4, '5'=>3, '4'=>2, '3'=>1, '2'=>0];
+        // $cardStrength = ['A'=>12, 'K'=>11, 'Q'=>10, 'J'=>9, 'T'=>8, '9'=>7, '8'=>6, '7'=>5, '6'=>4, '5'=>3, '4'=>2, '3'=>1, '2'=>0]; // Part 1
+        $cardStrength = ['A'=>12, 'K'=>11, 'Q'=>10, 'T'=>9, '9'=>8, '8'=>7, '7'=>6, '6'=>5, '5'=>4, '4'=>3, '3'=>2, '2'=>1, 'J'=> 0];
         // echo "Comparing $hand1 to $hand2 \n";
 
         for ($i = 0; $i < strlen($hand1); $i++) {
@@ -97,9 +106,27 @@
     }
 
     function part2($rows) {
-        //do stuff
+        $hands = [];
+        $winnings = 0;
+
+        foreach ($rows as $row){
+            list($cards, $bet) = explode(" ", $row);
+            $type = getHandType($cards);
+            echo "Hand $cards with type $type has bet: $bet \n";
+            array_push($hands, ["hand"=>$cards, "type"=>$type, "bet"=>$bet]);
+        }
+
+        usort($hands, 'sortHands');
+
+        foreach($hands as $i=>$hand){
+            print_r($hand);
+            $winnings = $winnings + (($i + 1) * $hand["bet"]);
+            echo "i: $i, Winnings: $winnings \n\n";
+        }
+
+        return $winnings;
     }
 
-    $result = part1($rows);
+    $result = part2($rows);
     echo "result: $result \n";
 ?>
