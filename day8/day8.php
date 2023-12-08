@@ -5,12 +5,7 @@
     function part1($input) {
         list($strategy, $nodes) = explode("\n\n", $input);
         $rows = explode("\n", $nodes);
-
-        echo "Strategy: $strategy[0], $strategy[1], $strategy[2] \n";
-
         $nodes = [];
-
-        echo "Traversing the map with strategy: $strategy \n";
 
         foreach($rows as $row){
             preg_match_all('/([A-Z]{3})/', $row, $stringNodes);
