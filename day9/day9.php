@@ -1,21 +1,17 @@
 <?php
     // $input = file_get_contents('input.txt'); //Get the file
-    $input = file_get_contents('test2.txt'); //Get the file
+    $input = file_get_contents('test1.txt'); //Get the file
 
     function getDiffs($currentSequence, $sequences){
-        if(sizeof($currentSequence) < 2){
-            return $sequences;
-        }
-
-        // echo "sequences is: " . json_encode($sequences) . "\n";
+        echo "currentSequence is: " . json_encode($currentSequence) . "\n";
         $diffSequence = [];
         $lagerThanZero = false;
 
         for($i = 0; $i < sizeof($currentSequence) - 1; $i++){
-            $difference = $currentSequence[$i + 1] - $currentSequence[$i];
+            $difference = (int)$currentSequence[$i + 1] - (int)$currentSequence[$i];
 
             array_push($diffSequence, $difference);
-            $lagerThanZero = $difference > 0;
+            $lagerThanZero = abs($difference) > 0;
         }
 
         array_push($sequences, $diffSequence);
@@ -23,6 +19,7 @@
         if ($lagerThanZero){
             return getDiffs($diffSequence, $sequences);
         } else {
+            echo "Een de diffSequence " . json_encode($diffSequence) . " \n";
             return $sequences;
         }
     }
@@ -30,17 +27,17 @@
     function findNextHistoryValue($sequences){
         $nSequences = sizeof($sequences);
 
-        $nextValue = $sequences[$nSequences - 1][array_key_last($sequences[$nSequences - 1])];
+        $nextValue = 0;
 
         for ($i = sizeof($sequences) - 2; $i >= 0; $i--){
-            $currentValue = $sequences[$i][array_key_last($sequences[$i])];
-            $lastValue = $sequences[$i+1][array_key_last($sequences[$i+1])];
+            $currentValue = (int)$sequences[$i][array_key_last($sequences[$i])];
+            $lastValue = (int)$sequences[$i+1][array_key_last($sequences[$i+1])];
             
             $nextValue = $currentValue + $lastValue;
             if(!isset($lastValue)){
                 echo "No last value found! " . json_encode($sequences) . " with length " . sizeof($sequences[$i]) . "\n";
             }
-            echo "The next value of " . json_encode($sequences[$i]) . " is $currentValue + $lastValue = $nextValue" . "\n";
+            // echo "The next value of " . json_encode($sequences[$i]) . " is $currentValue + $lastValue = $nextValue" . "\n";
             array_push($sequences[$i], $nextValue);
         }
 
@@ -53,8 +50,8 @@
         $sum = 0;
 
         foreach($rows as $row){
-            preg_match_all('/\d+/', $row, $matches);
-            $history = $matches[0];
+            $matches = explode(' ', $row);
+            $history = $matches;
             // print json_encode($history) . "\n";
             $sequences = getDiffs($history , [$history]);
             $nextValue = findNextHistoryValue($sequences);
